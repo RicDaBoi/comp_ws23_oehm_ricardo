@@ -1,0 +1,8 @@
+{
+    "name": "Solar Tracker",
+    "interval_in_minutes": "60",
+    "unit": "KJ",
+    "data": [
+        []
+    ]
+}
