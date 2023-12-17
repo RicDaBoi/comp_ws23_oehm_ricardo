@@ -63,44 +63,61 @@ def ConvertInterval():
 def ConvertUnit(inputdata, y):
 
     z=str(inputdata['unit'])
+    x=[]
 
-    if z.lower=="kwh":                                                                                                                              #convert unit
-        y=[i*3600000 for i in y]
+    if z.lower()==outunit.lower():
+        x=y
+        return x
+    
+    elif z.lower()=="kwh" and outunit.lower()!="kwh":                                                                                                  #convert unit
+        x=[i*3600000 for i in y]
+        
 
-    elif z.lower=="wh":
-        y=[i*3600 for i in y]
-    elif z.lower=="kj":
-        y=[i*1000 for i in y]
-
-
-
-    if outunit.lower=="kwh":
-        y=[i/3600000 for i in y]
-    elif outunit.lower=="wh":
-        y=[i/3600 for i in y]
-    elif outunit.lower=="kj":
-        y=[i/1000 for i in y]
+    elif z.lower()=="wh" and outunit.lower()!="wh":
+        x=[i*3600 for i in y]
+        
+    elif z.lower()=="kj" and outunit.lower()!="kj":
+        x=[i*1000 for i in y]
+       
+    elif z.lower()=="j" and outunit.lower()!="j":
+        x=y
+    
+    
+    if outunit.lower()=="kwh" and z.lower()!="kwh":
+        x=[i/3600000 for i in y]
+            
+    elif outunit.lower()=="wh" and z.lower()!="wh":
+        x=[i/3600 for i in y]
+            
+    elif outunit.lower()=="kj" and z.lower()!="kj":
+        x=[i/1000 for i in y]
+    
+    else: x=0
     
 
-    return y
+    return x
 
 
 def Finalizing(inputdata, y):
 
-    inputdata[intervalarg + "_in_minutes"] = int(outinterval)                                                                                       #write data to file
-    inputdata[unitarg] = str(outunit)
+    if y!=0:
+
+        inputdata[intervalarg + "_in_minutes"] = int(outinterval)                                                                                       #write data to file
+        inputdata[unitarg] = str(outunit)
 
 
 
-    inputdata['data'] = y                                                                                                                                 
+        inputdata['data'] = y                                                                                                                                 
 
 
 
-    with open(outarg, 'w') as outputfile:                            
-        json.dump(inputdata, outputfile, ensure_ascii=False, indent=4)                                                                              #dump output-file
+        with open(outarg, 'w') as outputfile:                            
+            json.dump(inputdata, outputfile, ensure_ascii=False, indent=4)                                                                              #dump output-file
 
-    print("Data conversion completed. New file saved as \"" +outarg +"\".")                                                                         #print final message
+        print("Data conversion completed. New file saved as \"" +outarg +"\".")                                                                         #print final message
 
+    else:
+        print("Error: Unit not supported.")
 
 
 
