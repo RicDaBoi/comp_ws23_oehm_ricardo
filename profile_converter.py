@@ -1,45 +1,94 @@
-import sys
+import argparse
 import shutil
 import json                                                                                                                                         #import libraries
 
-if len(sys.argv) < 7:
-    print("Error: Missing arguments.")
-else:
-
-    iarg1=sys.argv[1]                                                                                                                               #save input-name as variable
-    print("Input file = \"" +iarg1 +"\"")
-    iarg2=sys.argv[2]                                                                                                                               #save output-name as variable
-    varg1=sys.argv[3]
-    value1=sys.argv[4]
-    varg2=sys.argv[5]
-    value2=sys.argv[6]                                                                                                                              #save commandline arguments as variables 
+parser=argparse.ArgumentParser()
+parser.add_argument("input", help="the path to the input file")
+parser.add_argument("output", help="the path to the output file")
+parser.add_argument("interval", help="the interval that should be used")
+parser.add_argument("unit", help="the unit that should be used")
+args = parser.parse_args()
 
 
-    src=(iarg1)
-    dest=(iarg2)                                                                                                                                    #create output-file
+inarg=args.input                                                                                                                                    #save input-name as variable
+print("Input file = \"" +inarg +"\"")
+outarg=args.output                                                                                                                                  #save output-name as variable
+intervalarg=str(args.interval).split(" ")[0]
+outinterval=str(args.interval).split(" ")[1]
+unitarg=str(args.unit).split(" ")[0]
+outunit=str(args.unit).split(" ")[1]                                                                                                                #save commandline arguments as variables 
 
-    with open(iarg1) as inputfile:
+
+
+
+def main():
+    print("Converting data...")
+    inputdata, y=ConvertInterval()
+    y=ConvertUnit(inputdata, y)
+    Finalizing(inputdata, y)
+
+
+
+
+def ConvertInterval():
+
+    src=(inarg)
+    dest=(outarg)                                                                                                                                   #create output-file
+
+    with open(inarg) as inputfile:
         inputdata = json.load(inputfile)                                                                                                            #import data from input-file
 
         y=[]
         z=int(inputdata['interval_in_minutes'])
    
-        print("Converting data...")
+        
 
-    if z > int(value1):                                                                                                                             #convert data 
-        z=z // int(value1)  
+    if z > int(outinterval):                                                                                                                        #convert interval
+        z=z // int(outinterval)  
         for x in inputdata['data']:
             y.extend([x] * z)
     
-    elif z < int(value1):                                                                                                                                   
-        z=int(value1) // z
+    elif z < int(outinterval):                                                                                                                                   
+        z=int(outinterval) // z
         for x in range(len(inputdata['data']) - (z-1)):
             a=sum(inputdata['data'][x:x+z]) / z
             y.append(a)
+
+    else: y=inputdata['data']
+
+    return inputdata, y
+
+
+
+def ConvertUnit(inputdata, y):
+
+    z=str(inputdata['unit'])
+
+    if z.lower=="kwh":                                                                                                                              #convert unit
+        y=[i*3600000 for i in y]
+
+    elif z.lower=="wh":
+        y=[i*3600 for i in y]
+    elif z.lower=="kj":
+        y=[i*1000 for i in y]
+
+
+
+    if outunit.lower=="kwh":
+        y=[i/3600000 for i in y]
+    elif outunit.lower=="wh":
+        y=[i/3600 for i in y]
+    elif outunit.lower=="kj":
+        y=[i/1000 for i in y]
     
 
-    inputdata[varg1] = int(value1)                                                                                                                  #write data to file
-    inputdata[varg2] = str(value2)
+    return y
+
+
+def Finalizing(inputdata, y):
+
+    inputdata[intervalarg + "_in_minutes"] = int(outinterval)                                                                                       #write data to file
+    inputdata[unitarg] = str(outunit)
 
 
 
@@ -47,7 +96,12 @@ else:
 
 
 
-    with open(iarg2, 'w') as outputfile:                            
+    with open(outarg, 'w') as outputfile:                            
         json.dump(inputdata, outputfile, ensure_ascii=False, indent=4)                                                                              #dump output-file
 
-    print("Data conversion completed. New file saved as \"" +iarg2 +"\".")                                                                          #print final message
+    print("Data conversion completed. New file saved as \"" +outarg +"\".")                                                                         #print final message
+
+
+
+
+main()
